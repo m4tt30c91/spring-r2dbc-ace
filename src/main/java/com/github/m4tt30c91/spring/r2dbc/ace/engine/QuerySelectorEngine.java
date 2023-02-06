@@ -21,8 +21,8 @@ import io.r2dbc.spi.RowMetadata;
 import reactor.core.publisher.Mono;
 
 /**
- * A select processor to make up for the lack of relationship processors on the jpa' R2DBC
- * implementation
+ * A select processor to make up for the lack of relationship processors on the
+ * jpa' R2DBC implementation
  */
 public class QuerySelectorEngine {
 
@@ -41,7 +41,8 @@ public class QuerySelectorEngine {
     }
 
     /**
-     * <strong>processSql</strong> submit a select sql statement to process its result
+     * <strong>processSql</strong> submit a select sql statement to process its
+     * result
      *
      * @param sql the select sql statement
      * @return a QueryProcessor to process the result
@@ -62,7 +63,8 @@ public class QuerySelectorEngine {
         private DatabaseClient.GenericExecuteSpec genericExecuteSpec;
 
         /**
-         * Private constructor to prevent external code to create an instance of the class
+         * Private constructor to prevent external code to create an instance of the
+         * class
          *
          * @param genericExecuteSpec a DatabaseClient.GenericExecuteSpec instance
          */
@@ -73,7 +75,7 @@ public class QuerySelectorEngine {
         /**
          * <strong>bind</strong> wrap the DatabaseClient.GenericExecuteSpec.bind method
          *
-         * @param name the bind variable
+         * @param name  the bind variable
          * @param value the value to replace
          * @return the same QueryProcessor to implement fluent programming
          */
@@ -83,27 +85,29 @@ public class QuerySelectorEngine {
         }
 
         /**
-         * <strong>applyModelMappings</strong> collect the list of ModelMappers and submit each
-         * record to each instance
+         * <strong>applyModelMappings</strong> collect the list of ModelMappers and
+         * submit each record to each instance
          *
          * @param modelMappers the array of ModelMappers
          * @return a QueryResulProcessor to perform the required select operation
          */
         public QueryResultProcessor applyModelMappings(ModelMapper... modelMappers) {
-            Mono<List<Map<Class<? extends DataModel>, DataModel>>> resultPublisher =
-                    this.genericExecuteSpec.map((row, rowMetadata) -> this.applyModelMappings(row,
-                            rowMetadata, modelMappers)).all().collectList();
+            Mono<List<Map<Class<? extends DataModel>, DataModel>>> resultPublisher = this.genericExecuteSpec
+                    .map((row, rowMetadata) -> this.applyModelMappings(row,
+                            rowMetadata, modelMappers))
+                    .all().collectList();
             return new QueryResultProcessor(resultPublisher, modelMappers);
         }
 
         /**
-         * <strong>applyModelMappings</strong> collect the list of ModelMappers and submit the
-         * record to each instance
+         * <strong>applyModelMappings</strong> collect the list of ModelMappers and
+         * submit the record to each instance
          *
-         * @param row the record
-         * @param rowMetadata the record metadata
+         * @param row          the record
+         * @param rowMetadata  the record metadata
          * @param modelMappers the array of ModelMappers
-         * @return a mapping between DataModel classes and their instances, based on the record
+         * @return a mapping between DataModel classes and their instances, based on the
+         *         record
          */
         private Map<Class<? extends DataModel>, DataModel> applyModelMappings(Row row,
                 RowMetadata rowMetadata, ModelMapper... modelMappers) {
@@ -139,11 +143,13 @@ public class QuerySelectorEngine {
             private final Map<Class<? extends DataModel>, Set<String>> distinctDataModels;
 
             /**
-             * Private constructor to prevent external code to create an instance of the class
+             * Private constructor to prevent external code to create an instance of the
+             * class
              *
              * @param resultPublisher the result processed from some select statement
-             * @param modelMappers the array of ModelMappers to map each record to a set of
-             *        DataModel
+             * @param modelMappers    the array of ModelMappers to map each record to a set
+             *                        of
+             *                        DataModel
              */
             private QueryResultProcessor(
                     Mono<List<Map<Class<? extends DataModel>, DataModel>>> resultPublisher,
@@ -159,10 +165,11 @@ public class QuerySelectorEngine {
             }
 
             /**
-             * <strong>selectOne</strong> select the first entry for tClass in the records list
+             * <strong>selectOne</strong> select the first entry for tClass in the records
+             * list
              *
              * @param tClass the target class to be returned from the result processing
-             * @param <T> the type of the target class
+             * @param <T>    the type of the target class
              * @return the first data model that meet tClass
              */
             public <T extends DataModel> Mono<T> selectOne(Class<T> tClass) {
@@ -173,10 +180,11 @@ public class QuerySelectorEngine {
             }
 
             /**
-             * <strong>selectMany</strong> select all the entries for tClass in the records list
+             * <strong>selectMany</strong> select all the entries for tClass in the records
+             * list
              *
              * @param tClass the target class to be returned from the result processing
-             * @param <T> the type of the target class
+             * @param <T>    the type of the target class
              * @return the list of data models that meet tClass
              */
             public <T extends DataModel> Mono<List<T>> selectMany(Class<T> tClass) {
@@ -187,12 +195,12 @@ public class QuerySelectorEngine {
             }
 
             /**
-             * <strong>selectDistinct</strong> select all the distinct data models for tClass in the
-             * records list
+             * <strong>selectDistinct</strong> select all the distinct data models for
+             * tClass in the records list
              *
-             * @param list the records processed by a statement
+             * @param list   the records processed by a statement
              * @param tClass the target class to be returned from the result processing
-             * @param <T> the type of the target class
+             * @param <T>    the type of the target class
              * @return the list of distinct data models
              */
             private <T extends DataModel> List<T> selectDistinct(
@@ -232,11 +240,12 @@ public class QuerySelectorEngine {
             }
 
             /**
-             * <strong>collectRecord</strong> collect, if any, the association between the base and
-             * the collectable for that record
+             * <strong>collectRecord</strong> collect, if any, the association between the
+             * base and the collectable for that record
              *
              * @param dataGroupModel the association between a Base and a Collectable
-             * @param record a representation of a single record in terms of DataModels
+             * @param record         a representation of a single record in terms of
+             *                       DataModels
              */
             private void collectRecord(DataGroupModel dataGroupModel,
                     Map<Class<? extends DataModel>, DataModel> record) {
@@ -246,8 +255,7 @@ public class QuerySelectorEngine {
 
                 // Guard point: no record to collect
                 boolean isBaseInRecord = record.containsKey(dataGroupModel.base());
-                boolean isCollectableInRecord =
-                        isBaseInRecord && record.containsKey(dataGroupModel.collectable());
+                boolean isCollectableInRecord = isBaseInRecord && record.containsKey(dataGroupModel.collectable());
                 if (!isCollectableInRecord)
                     return;
 
@@ -256,10 +264,10 @@ public class QuerySelectorEngine {
                 DataModel collectable = record.get(dataGroupModel.collectable());
                 String id = base.getId();
 
-                // Add the collectable and, if the process generates a new collection, collect the
-                // association
-                Pair<Boolean, List<DataModel>> collectables =
-                        this.bases2Collectables.addCollectable(baseClass, id, collectable);
+                // Add the collectable and, if the process generates a new collection, collect
+                // the association
+                Pair<Boolean, List<DataModel>> collectables = this.bases2Collectables.addCollectable(baseClass, id,
+                        collectable);
                 if (!collectables.getFirst()) {
                     dataGroupModel.setCollectables(base, collectables.getSecond());
                     this.group2Base.add(Pair.of(dataGroupModel, base));
@@ -268,8 +276,8 @@ public class QuerySelectorEngine {
             }
 
             /**
-             * <strong>distinctCollection</strong> distinct all data in all collectables and rewrite
-             * on base
+             * <strong>distinctCollection</strong> distinct all data in all collectables and
+             * rewrite on base
              *
              * @param pair the association between a ModelGrouping and a DataModel
              */
@@ -283,8 +291,7 @@ public class QuerySelectorEngine {
 
                 // Guard point: data already processed
                 boolean containsClass = this.distinctDataModels.containsKey(baseClass);
-                boolean skipRecord =
-                        containsClass && this.distinctDataModels.get(baseClass).contains(id);
+                boolean skipRecord = containsClass && this.distinctDataModels.get(baseClass).contains(id);
                 if (skipRecord)
                     return;
 
@@ -328,23 +335,23 @@ public class QuerySelectorEngine {
                 /**
                  * <strong>addCollectable</strong> associate a Base to a Collectable
                  * <p>
-                 * If the baseClass is not yet present, a new entry in the map will be stored, and
-                 * it will begin the delegation process to create the list of collectables starting
-                 * from collectable.
+                 * If the baseClass is not yet present, a new entry in the map will be stored,
+                 * and it will begin the delegation process to create the list of collectables
+                 * starting from collectable.
                  * </p>
                  * <p>
-                 * If the baseClass is present, the entry will be resumed and the delegation process
-                 * will try to add collectable to an already existing collection if present, or
-                 * create a new one if no collection has already been created.
+                 * If the baseClass is present, the entry will be resumed and the delegation
+                 * process will try to add collectable to an already existing collection if
+                 * present, or create a new one if no collection has already been created.
                  * </p>
                  *
-                 * @param baseClass the base class
-                 * @param id the base id
+                 * @param baseClass   the base class
+                 * @param id          the base id
                  * @param collectable the collectable element
                  * @return A pair of elements where:
                  *         <ul>
-                 *         <li>pair.left is a boolean that takes true if the list of collectables
-                 *         was already build, false instead</li>
+                 *         <li>pair.left is a boolean that takes true if the list of
+                 *         collectables was already build, false instead</li>
                  *         <li>pair.right is the resulting list of collectables</li>
                  *         </ul>
                  */
@@ -390,7 +397,7 @@ public class QuerySelectorEngine {
                      * create a new one if no collection has already been created.
                      * </p>
                      *
-                     * @param id the base id
+                     * @param id          the base id
                      * @param collectable the collectable
                      * @return A pair of elements where:
                      *         <ul>
