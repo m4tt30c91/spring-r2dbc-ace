@@ -36,7 +36,7 @@ public class QuerySelectorEngine {
      *
      * @param databaseClient the DatabaseClient
      */
-    public QuerySelectorEngine(DatabaseClient databaseClient) {
+    public QuerySelectorEngine(final DatabaseClient databaseClient) {
         this.databaseClient = databaseClient;
     }
 
