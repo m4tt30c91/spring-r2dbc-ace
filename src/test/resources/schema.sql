@@ -1,5 +1,5 @@
 CREATE TABLE author (id INTEGER PRIMARY KEY, first_name VARCHAR(128), last_name VARCHAR(128));
-CREATE TABLE book (id INTEGER PRIMARY KEY, book_title VARCHAR(255), author_id NUMBER);
+CREATE TABLE book (id INTEGER PRIMARY KEY, book_title VARCHAR(255), author_id INTEGER);
 ALTER TABLE book ADD FOREIGN KEY (author_id) REFERENCES author(id);
 
 INSERT INTO author(id, first_name, last_name) VALUES(1, 'J. R. R.', 'Tolkien');

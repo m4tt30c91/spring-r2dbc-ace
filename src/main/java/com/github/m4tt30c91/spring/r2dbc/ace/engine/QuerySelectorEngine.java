@@ -85,22 +85,22 @@ public class QuerySelectorEngine {
         }
 
         /**
-         * <strong>applyModelMappings</strong> collect the list of ModelMappers and
+         * <strong>applyModelMappers</strong> collect the list of ModelMappers and
          * submit each record to each instance
          *
          * @param modelMappers the array of ModelMappers
          * @return a QueryResulProcessor to perform the required select operation
          */
-        public QueryResultProcessor applyModelMappings(ModelMapper... modelMappers) {
+        public QueryResultProcessor applyModelMappers(ModelMapper... modelMappers) {
             Mono<List<Map<Class<? extends DataModel>, DataModel>>> resultPublisher = this.genericExecuteSpec
-                    .map((row, rowMetadata) -> this.applyModelMappings(row,
+                    .map((row, rowMetadata) -> this.applyModelMappers(row,
                             rowMetadata, modelMappers))
                     .all().collectList();
             return new QueryResultProcessor(resultPublisher, modelMappers);
         }
 
         /**
-         * <strong>applyModelMappings</strong> collect the list of ModelMappers and
+         * <strong>applyModelMappers</strong> collect the list of ModelMappers and
          * submit the record to each instance
          *
          * @param row          the record
@@ -109,7 +109,7 @@ public class QuerySelectorEngine {
          * @return a mapping between DataModel classes and their instances, based on the
          *         record
          */
-        private Map<Class<? extends DataModel>, DataModel> applyModelMappings(Row row,
+        private Map<Class<? extends DataModel>, DataModel> applyModelMappers(Row row,
                 RowMetadata rowMetadata, ModelMapper... modelMappers) {
             return Arrays.stream(modelMappers).map(modelMapper -> modelMapper.map(row, rowMetadata))
                     .collect(Collectors.toMap(DataModel::getClass, dataModel -> dataModel));
@@ -209,7 +209,7 @@ public class QuerySelectorEngine {
                 List<T> dataModels = new LinkedList<>();
                 for (Map<Class<? extends DataModel>, DataModel> map : list) {
                     T entry = (T) map.get(tClass);
-                    String id = entry.getId();
+                    String id = entry.uniqueIdentifier();
                     if (!ids.contains(id)) {
                         dataModels.add(entry);
                         ids.add(id);
@@ -262,7 +262,7 @@ public class QuerySelectorEngine {
                 // Collect data models
                 DataModel base = record.get(dataGroupModel.base());
                 DataModel collectable = record.get(dataGroupModel.collectable());
-                String id = base.getId();
+                String id = base.uniqueIdentifier();
 
                 // Add the collectable and, if the process generates a new collection, collect
                 // the association
@@ -287,7 +287,7 @@ public class QuerySelectorEngine {
                 DataGroupModel dataGroupModel = pair.getFirst();
                 DataModel base = pair.getSecond();
                 Class<? extends DataModel> baseClass = base.getClass();
-                String id = base.getId();
+                String id = base.uniqueIdentifier();
 
                 // Guard point: data already processed
                 boolean containsClass = this.distinctDataModels.containsKey(baseClass);
@@ -299,7 +299,7 @@ public class QuerySelectorEngine {
                 List<DataModel> collectables = dataGroupModel.getCollectables(base);
                 List<DataModel> distinctCollectables = collectables.stream()
                         .collect(Collectors.collectingAndThen(Collectors.toCollection(
-                                () -> new TreeSet<>(Comparator.comparing(DataModel::getId))),
+                                () -> new TreeSet<>(Comparator.comparing(DataModel::uniqueIdentifier))),
                                 LinkedList::new));
 
                 // Set collectable for base
