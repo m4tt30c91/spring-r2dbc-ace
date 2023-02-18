@@ -55,6 +55,7 @@ public class QuerySelectorEngineTest {
         StepVerifier.create(authorDataModel)
                 .assertNext(dataModel -> {
                     Assert.isTrue(1 == dataModel.getId(), "Should be author with id 1");
+                    Assert.isTrue(3 == dataModel.getBooks().size(), "Should have written 3 books");
                     //TODO continue testing
                 })
                 .expectComplete()
