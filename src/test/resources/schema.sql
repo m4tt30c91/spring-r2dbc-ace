@@ -15,3 +15,5 @@ INSERT INTO book(id, book_title, author_id) VALUES(7, 'Harry Potter and the Gobl
 INSERT INTO book(id, book_title, author_id) VALUES(8, 'Harry Potter and the Order of the Phoenix', 2);
 INSERT INTO book(id, book_title, author_id) VALUES(9, 'Harry Potter and the Half-Blood Prince', 2);
 INSERT INTO book(id, book_title, author_id) VALUES(10, 'Harry Potter and the Deathly Hallows', 2);
+
+INSERT INTO author(id, first_name, last_name) VALUES(3, 'George R. R.', 'Martin');

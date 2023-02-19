@@ -42,6 +42,7 @@ public class QuerySelectorEngineTest {
         StepVerifier.create(authors)
                 .expectNext("J. R. R. Tolkien")
                 .expectNext("J. K. Rowling")
+                .expectNext("George R. R. Martin")
                 .expectComplete()
                 .verify();
     }
@@ -50,19 +51,15 @@ public class QuerySelectorEngineTest {
     public void shouldSelectAuhtorWithBooks() {
         QuerySelectorEngine querySelectorEngine = new QuerySelectorEngine(this.databaseClient);
         Mono<AuthorDataModel> authorDataModel = querySelectorEngine
-                .processSql("SELECT a.id AS authorId, a.first_name AS firstName, a.last_name AS lastName, b.id AS bookId, b.book_title AS bookTitle, b.author_id AS bookAuthorId FROM author a JOIN book b ON a.id = b.author_id WHERE a.id = :authorId")
+                .processSql(
+                        "SELECT a.id AS authorId, a.first_name AS firstName, a.last_name AS lastName, b.id AS bookId, b.book_title AS bookTitle, b.author_id AS bookAuthorId FROM author a JOIN book b ON a.id = b.author_id WHERE a.id = :authorId")
                 .bind("authorId", 1)
                 .applyModelMappers(new AuthorModelMapper(), new BookModelMapper())
                 .selectOne(AuthorDataModel.class);
         StepVerifier.create(authorDataModel)
                 .assertNext(dataModel -> {
                     Assert.isTrue(1 == dataModel.getId(), "Should be author with id 1");
-                    Assert.isTrue(3 == dataModel.getBooks().size(), "Should have written 3 books");
-                    String authorFullName = dataModel.getFirstName() + " " + dataModel.getLastName();
-                    Assert.isTrue("J. R. R. Tolkien".equals(authorFullName), "Should be author with full name 'J. R. R. Tolkien'");
-                    Assert.isTrue(this.containsBook(dataModel, "The Fellowship of the Ring"), "Should have written 'The Fellowship of the Ring'");
-                    Assert.isTrue(this.containsBook(dataModel, "The Two Towers"), "Should have written 'The Two Towers'");
-                    Assert.isTrue(this.containsBook(dataModel, "The Return of the King"), "Should have written 'The Return of the King'");
+                    this.assertJRRTalkienAndBooks(dataModel);
                 })
                 .expectComplete()
                 .verify();
@@ -72,30 +69,14 @@ public class QuerySelectorEngineTest {
     public void shouldSelectAllAuthorsWithBooks() {
         QuerySelectorEngine querySelectorEngine = new QuerySelectorEngine(this.databaseClient);
         Mono<List<AuthorDataModel>> authorDataModels = querySelectorEngine
-                .processSql("SELECT a.id AS authorId, a.first_name AS firstName, a.last_name AS lastName, b.id AS bookId, b.book_title AS bookTitle, b.author_id AS bookAuthorId FROM author a JOIN book b ON a.id = b.author_id ORDER BY a.id")
+                .processSql(
+                        "SELECT a.id AS authorId, a.first_name AS firstName, a.last_name AS lastName, b.id AS bookId, b.book_title AS bookTitle, b.author_id AS bookAuthorId FROM author a JOIN book b ON a.id = b.author_id ORDER BY a.id")
                 .applyModelMappers(new AuthorModelMapper(), new BookModelMapper())
                 .selectMany(AuthorDataModel.class);
         StepVerifier.create(authorDataModels)
                 .assertNext(dataModels -> {
                     Assert.isTrue(2 == dataModels.size(), "Should contain 2 authors");
-                    AuthorDataModel tolkien = dataModels.get(0);
-                    AuthorDataModel rowling = dataModels.get(1);
-                    String tolkienFullName = tolkien.getFirstName() + " " + tolkien.getLastName(); 
-                    String rowlingFullName = rowling.getFirstName() + " " + rowling.getLastName();
-                    Assert.isTrue("J. R. R. Tolkien".equals(tolkienFullName), "Should be author with full name 'J. R. R. Tolkien'");
-                    Assert.isTrue("J. K. Rowling".equals(rowlingFullName), "Should be author with full name 'J. K. Rowling'");
-                    Assert.isTrue(3 == tolkien.getBooks().size(), "Should have written 3 books");
-                    Assert.isTrue(7 == rowling.getBooks().size(), "Should have written 7 books");
-                    Assert.isTrue(this.containsBook(tolkien, "The Fellowship of the Ring"), "Should have written 'The Fellowship of the Ring'");
-                    Assert.isTrue(this.containsBook(tolkien, "The Two Towers"), "Should have written 'The Two Towers'");
-                    Assert.isTrue(this.containsBook(tolkien, "The Return of the King"), "Should have written 'The Return of the King'");
-                    Assert.isTrue(this.containsBook(rowling, "Harry Potter and the Philosopher's Stone"), "Should have written 'Harry Potter and the Philosopher's Stone'");
-                    Assert.isTrue(this.containsBook(rowling, "Harry Potter and the Chamber of Secrets"), "Should have written 'Harry Potter and the Chamber of Secrets'");
-                    Assert.isTrue(this.containsBook(rowling, "Harry Potter and the Prisoner of Azkaban"), "Should have written 'Harry Potter and the Prisoner of Azkaban'");
-                    Assert.isTrue(this.containsBook(rowling, "Harry Potter and the Goblet of Fire"), "Should have written 'Harry Potter and the Goblet of Fire'");
-                    Assert.isTrue(this.containsBook(rowling, "Harry Potter and the Order of the Phoenix"), "Should have written 'Harry Potter and the Order of the Phoenix'");
-                    Assert.isTrue(this.containsBook(rowling, "Harry Potter and the Half-Blood Prince"), "Should have written 'Harry Potter and the Half-Blood Prince'");
-                    Assert.isTrue(this.containsBook(rowling, "Harry Potter and the Deathly Hallows"), "Should have written 'Harry Potter and the Deathly Hallows'");
+                    this.assertAuthorsAndBooks(dataModels);
                 })
                 .expectComplete()
                 .verify();
@@ -105,7 +86,8 @@ public class QuerySelectorEngineTest {
     public void shouldReturnEmpty() {
         QuerySelectorEngine querySelectorEngine = new QuerySelectorEngine(this.databaseClient);
         Mono<AuthorDataModel> authorDataModel = querySelectorEngine
-                .processSql("SELECT a.id AS authorId, a.first_name AS firstName, a.last_name AS lastName, b.id AS bookId, b.book_title AS bookTitle, b.author_id AS bookAuthorId FROM author a JOIN book b ON a.id = b.author_id WHERE a.id = :authorId")
+                .processSql(
+                        "SELECT a.id AS authorId, a.first_name AS firstName, a.last_name AS lastName, b.id AS bookId, b.book_title AS bookTitle, b.author_id AS bookAuthorId FROM author a JOIN book b ON a.id = b.author_id WHERE a.id = :authorId")
                 .bind("authorId", 3)
                 .applyModelMappers(new AuthorModelMapper(), new BookModelMapper())
                 .selectOne(AuthorDataModel.class);
@@ -118,7 +100,8 @@ public class QuerySelectorEngineTest {
     public void shouldReturnEmptyList() {
         QuerySelectorEngine querySelectorEngine = new QuerySelectorEngine(this.databaseClient);
         Mono<List<AuthorDataModel>> authorDataModels = querySelectorEngine
-                .processSql("SELECT a.id AS authorId, a.first_name AS firstName, a.last_name AS lastName, b.id AS bookId, b.book_title AS bookTitle, b.author_id AS bookAuthorId FROM author a JOIN book b ON a.id = b.author_id WHERE a.id = :authorId")
+                .processSql(
+                        "SELECT a.id AS authorId, a.first_name AS firstName, a.last_name AS lastName, b.id AS bookId, b.book_title AS bookTitle, b.author_id AS bookAuthorId FROM author a JOIN book b ON a.id = b.author_id WHERE a.id = :authorId order by a.id")
                 .bind("authorId", 3)
                 .applyModelMappers(new AuthorModelMapper(), new BookModelMapper())
                 .selectMany(AuthorDataModel.class);
@@ -128,6 +111,67 @@ public class QuerySelectorEngineTest {
                 })
                 .expectComplete()
                 .verify();
+    }
+
+    @Test
+    public void shouldReturnAllAuthors() {
+        QuerySelectorEngine querySelectorEngine = new QuerySelectorEngine(this.databaseClient);
+        Mono<List<AuthorDataModel>> authorDataModels = querySelectorEngine
+                .processSql(
+                        "SELECT a.id AS authorId, a.first_name AS firstName, a.last_name AS lastName, b.id AS bookId, b.book_title AS bookTitle, b.author_id AS bookAuthorId FROM author a LEFT JOIN book b ON a.id = b.author_id")
+                .applyModelMappers(new AuthorModelMapper(), new BookModelMapper())
+                .selectMany(AuthorDataModel.class);
+        StepVerifier.create(authorDataModels)
+                .assertNext(list -> {
+                    Assert.isTrue(3 == list.size(), "Should contain 3 authors");
+                    this.assertAuthorsAndBooks(list);
+                    AuthorDataModel martin = list.get(2);
+                    String martinFullName = martin.getFirstName() + " " + martin.getLastName();
+                    Assert.isTrue("George R. R. Martin".equals(martinFullName), "Should author with full name 'George R. R. Martin'");
+                    Assert.isNull(martin.getBooks(), "Should have written no books");
+                })
+                .expectComplete()
+                .verify();
+    }
+
+    private void assertAuthorsAndBooks(List<AuthorDataModel> dataModels) {
+        AuthorDataModel tolkien = dataModels.get(0);
+        AuthorDataModel rowling = dataModels.get(1);
+        this.assertJRRTalkienAndBooks(tolkien);
+        this.asserJKRowlingAndBooks(rowling);
+    }
+
+    private void assertJRRTalkienAndBooks(AuthorDataModel tolkien) {
+        String tolkienFullName = tolkien.getFirstName() + " " + tolkien.getLastName();
+        Assert.isTrue("J. R. R. Tolkien".equals(tolkienFullName),
+                "Should be author with full name 'J. R. R. Tolkien'");
+        Assert.isTrue(3 == tolkien.getBooks().size(), "Should have written 3 books");
+        Assert.isTrue(this.containsBook(tolkien, "The Fellowship of the Ring"),
+                "Should have written 'The Fellowship of the Ring'");
+        Assert.isTrue(this.containsBook(tolkien, "The Two Towers"), "Should have written 'The Two Towers'");
+        Assert.isTrue(this.containsBook(tolkien, "The Return of the King"),
+                "Should have written 'The Return of the King'");
+    }
+
+    private void asserJKRowlingAndBooks(AuthorDataModel rowling) {
+        String rowlingFullName = rowling.getFirstName() + " " + rowling.getLastName();
+        Assert.isTrue("J. K. Rowling".equals(rowlingFullName),
+                "Should be author with full name 'J. K. Rowling'");
+        Assert.isTrue(7 == rowling.getBooks().size(), "Should have written 7 books");
+        Assert.isTrue(this.containsBook(rowling, "Harry Potter and the Philosopher's Stone"),
+                "Should have written 'Harry Potter and the Philosopher's Stone'");
+        Assert.isTrue(this.containsBook(rowling, "Harry Potter and the Chamber of Secrets"),
+                "Should have written 'Harry Potter and the Chamber of Secrets'");
+        Assert.isTrue(this.containsBook(rowling, "Harry Potter and the Prisoner of Azkaban"),
+                "Should have written 'Harry Potter and the Prisoner of Azkaban'");
+        Assert.isTrue(this.containsBook(rowling, "Harry Potter and the Goblet of Fire"),
+                "Should have written 'Harry Potter and the Goblet of Fire'");
+        Assert.isTrue(this.containsBook(rowling, "Harry Potter and the Order of the Phoenix"),
+                "Should have written 'Harry Potter and the Order of the Phoenix'");
+        Assert.isTrue(this.containsBook(rowling, "Harry Potter and the Half-Blood Prince"),
+                "Should have written 'Harry Potter and the Half-Blood Prince'");
+        Assert.isTrue(this.containsBook(rowling, "Harry Potter and the Deathly Hallows"),
+                "Should have written 'Harry Potter and the Deathly Hallows'");
     }
 
     private boolean containsBook(AuthorDataModel authorDataModel, String bookTitle) {

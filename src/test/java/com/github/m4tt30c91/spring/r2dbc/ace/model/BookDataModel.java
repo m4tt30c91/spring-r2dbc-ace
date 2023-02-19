@@ -34,5 +34,5 @@ public class BookDataModel implements DataModel {
     public void setAuthorId(int authorId) {
         this.authorId = authorId;
     }
-    
+
 }

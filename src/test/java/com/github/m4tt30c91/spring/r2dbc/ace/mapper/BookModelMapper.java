@@ -11,11 +11,15 @@ import io.r2dbc.spi.Row;
 import io.r2dbc.spi.RowMetadata;
 
 public class BookModelMapper implements ModelMapper<BookDataModel> {
-    
+
     @Override
     public BookDataModel map(Row row, RowMetadata rowMetadata) {
+        Integer id = row.get("bookId", Integer.class);
+        if (id == null) {
+            return null;
+        }
         BookDataModel bookDataModel = new BookDataModel();
-        bookDataModel.setId(row.get("bookId", Integer.class));
+        bookDataModel.setId(id);
         bookDataModel.setBookTitle(row.get("bookTitle", String.class));
         bookDataModel.setAuthorId(row.get("bookAuthorId", Integer.class));
         return bookDataModel;

@@ -20,7 +20,8 @@ public interface ModelMapper<T extends DataModel> {
      * 
      * @param row         a single record
      * @param rowMetadata the metadata for the record
-     * @return the DataModel
+     * @return the DataModel or null if the record cannot be used to create the
+     *         DataModel
      */
     T map(Row row, RowMetadata rowMetadata);
 

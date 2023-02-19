@@ -113,6 +113,7 @@ public class QuerySelectorEngine {
         private Map<Class<? extends DataModel>, DataModel> applyModelMappers(Row row,
                 RowMetadata rowMetadata, ModelMapper... modelMappers) {
             return Arrays.stream(modelMappers).map(modelMapper -> modelMapper.map(row, rowMetadata))
+                    .filter(Objects::nonNull)
                     .collect(Collectors.toMap(DataModel::getClass, dataModel -> dataModel));
         }
 
@@ -168,18 +169,26 @@ public class QuerySelectorEngine {
             /**
              * <strong>selectOne</strong> select the first entry for tClass in the records
              * list
+             * <p>
+             * Please note that the method will return one element even if more than one
+             * result is found, so that if your result set contains more than one element
+             * such that DataModel::uniqueIdentifier is not equal, only one of them will be
+             * return and no error will be thrown. This coise has been made for the sake of
+             * the engine performances
+             * </p>
              *
              * @param tClass the target class to be returned from the result processing
              * @param <T>    the type of the target class
-             * @return the first data model that meet tClass or empty if no element is present
+             * @return the first data model that meet tClass or empty if no element is
+             *         present
              */
             public <T extends DataModel> Mono<T> selectOne(Class<T> tClass) {
                 return this.resultPublisher
-                    .filter(list -> !list.isEmpty())
-                    .map(list -> {
-                        this.collectAndGroup(list);
-                        return (T) list.get(0).get(tClass);
-                    });
+                        .filter(list -> !list.isEmpty())
+                        .map(list -> {
+                            this.collectAndGroup(list);
+                            return (T) list.get(0).get(tClass);
+                        });
             }
 
             /**
@@ -192,12 +201,12 @@ public class QuerySelectorEngine {
              */
             public <T extends DataModel> Mono<List<T>> selectMany(Class<T> tClass) {
                 return this.resultPublisher
-                    .filter(list -> !list.isEmpty())
-                    .map(list -> {
-                        this.collectAndGroup(list);
-                        return this.selectDistinct(list, tClass);
-                    })
-                    .switchIfEmpty(Mono.just(Collections.emptyList()));
+                        .filter(list -> !list.isEmpty())
+                        .map(list -> {
+                            this.collectAndGroup(list);
+                            return this.selectDistinct(list, tClass);
+                        })
+                        .switchIfEmpty(Mono.just(Collections.emptyList()));
             }
 
             /**

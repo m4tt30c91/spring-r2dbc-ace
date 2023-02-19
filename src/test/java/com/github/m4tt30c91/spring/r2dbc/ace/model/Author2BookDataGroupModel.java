@@ -23,5 +23,5 @@ public class Author2BookDataGroupModel implements DataGroupModel<AuthorDataModel
     public void setCollectables(AuthorDataModel base, List<BookDataModel> collectables) {
         base.setBooks(collectables);
     }
-    
+
 }

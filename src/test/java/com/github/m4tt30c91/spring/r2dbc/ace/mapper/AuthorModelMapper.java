@@ -13,6 +13,10 @@ public class AuthorModelMapper implements ModelMapper<AuthorDataModel> {
 
     @Override
     public AuthorDataModel map(Row row, RowMetadata rowMetadata) {
+        Integer id = row.get("authorId", Integer.class);
+        if (id == null) {
+            return null;
+        }
         AuthorDataModel authorDataModel = new AuthorDataModel();
         authorDataModel.setId(row.get("authorId", Integer.class));
         authorDataModel.setFirstName((String) row.get("firstName", String.class));
