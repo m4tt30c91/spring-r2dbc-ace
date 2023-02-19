@@ -15,9 +15,9 @@ public class BookModelMapper implements ModelMapper<BookDataModel> {
     @Override
     public BookDataModel map(Row row, RowMetadata rowMetadata) {
         BookDataModel bookDataModel = new BookDataModel();
-        bookDataModel.setId((Integer) row.get("bookId"));
+        bookDataModel.setId(row.get("bookId", Integer.class));
         bookDataModel.setBookTitle(row.get("bookTitle", String.class));
-        bookDataModel.setAuthorId((Integer) row.get("bookAuthorId"));
+        bookDataModel.setAuthorId(row.get("bookAuthorId", Integer.class));
         return bookDataModel;
     }
 

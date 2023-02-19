@@ -1,6 +1,7 @@
 package com.github.m4tt30c91.spring.r2dbc.ace.engine;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -170,13 +171,15 @@ public class QuerySelectorEngine {
              *
              * @param tClass the target class to be returned from the result processing
              * @param <T>    the type of the target class
-             * @return the first data model that meet tClass
+             * @return the first data model that meet tClass or empty if no element is present
              */
             public <T extends DataModel> Mono<T> selectOne(Class<T> tClass) {
-                return this.resultPublisher.map(list -> {
-                    this.collectAndGroup(list);
-                    return (T) list.get(0).get(tClass);
-                });
+                return this.resultPublisher
+                    .filter(list -> !list.isEmpty())
+                    .map(list -> {
+                        this.collectAndGroup(list);
+                        return (T) list.get(0).get(tClass);
+                    });
             }
 
             /**
@@ -188,10 +191,13 @@ public class QuerySelectorEngine {
              * @return the list of data models that meet tClass
              */
             public <T extends DataModel> Mono<List<T>> selectMany(Class<T> tClass) {
-                return this.resultPublisher.map(list -> {
-                    this.collectAndGroup(list);
-                    return this.selectDistinct(list, tClass);
-                });
+                return this.resultPublisher
+                    .filter(list -> !list.isEmpty())
+                    .map(list -> {
+                        this.collectAndGroup(list);
+                        return this.selectDistinct(list, tClass);
+                    })
+                    .switchIfEmpty(Mono.just(Collections.emptyList()));
             }
 
             /**
